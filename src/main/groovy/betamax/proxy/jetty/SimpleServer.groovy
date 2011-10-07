@@ -64,7 +64,7 @@ class SimpleServer extends AbstractLifeCycleListener {
 		startedLatch = new CountDownLatch(1)
 		stoppedLatch = new CountDownLatch(1)
 
-		server = new Server(port)
+		server = createServer(port)
 		server.handler = handler
 		server.addLifeCycleListener(this)
 		server.start()
@@ -100,6 +100,10 @@ class SimpleServer extends AbstractLifeCycleListener {
 	void lifeCycleStopped(LifeCycle event) {
 		log.debug "stopped..."
 		stoppedLatch.countDown()
+	}
+
+	protected Server createServer(int port) {
+		new Server(port)
 	}
 
 }
