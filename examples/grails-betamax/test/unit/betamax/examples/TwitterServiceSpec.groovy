@@ -6,6 +6,7 @@ import groovyx.net.http.RESTClient
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.junit.Rule
 import betamax.*
+import java.util.logging.*
 
 class TwitterServiceSpec extends UnitSpec {
 
@@ -13,6 +14,12 @@ class TwitterServiceSpec extends UnitSpec {
 	@Rule Recorder recorder = new Recorder(tapeRoot: new File(baseDir, "test/resources/tapes"))
 
 	TwitterService service = new TwitterService()
+
+	def setupSpec() {
+		def log = Logger.getLogger("betamax")
+		log.addHandler(new ConsoleHandler())
+		log.level = Level.ALL
+	}
 
 	def setup() {
 		def restClient = new RESTClient("http://search.twitter.com/search.json")
