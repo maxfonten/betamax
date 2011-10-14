@@ -34,7 +34,7 @@ class RecordAndPlaybackProxyInterceptor implements VetoingProxyInterceptor {
 		this.recorder = recorder
 	}
 
-	boolean interceptRequest(Request request, Response response) {
+	boolean interceptRequest(Request request, WritableResponse response) {
 		def tape = recorder.tape
 		if (!tape) {
 			log.severe "no tape inserted..."

@@ -16,7 +16,7 @@
 
 package betamax
 
-import betamax.proxy.jetty.ProxyServer
+import betamax.proxy.owasp.ProxyServer
 import betamax.tape.StorableTape
 import betamax.tape.yaml.YamlTapeLoader
 import org.junit.rules.MethodRule

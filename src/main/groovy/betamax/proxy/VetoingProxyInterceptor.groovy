@@ -18,7 +18,7 @@ package betamax.proxy
 
 interface VetoingProxyInterceptor {
 
-	boolean interceptRequest(Request request, Response response)
+	boolean interceptRequest(Request request, WritableResponse response)
 
 	void interceptResponse(Request request, Response response)
 

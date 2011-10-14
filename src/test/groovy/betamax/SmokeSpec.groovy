@@ -5,6 +5,11 @@ import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.junit.Rule
 import static java.net.HttpURLConnection.HTTP_OK
 import spock.lang.*
+import groovyx.net.http.HttpResponseDecorator
+import betamax.proxy.RecordAndPlaybackProxyInterceptor
+import static betamax.proxy.RecordAndPlaybackProxyInterceptor.X_BETAMAX
+import org.apache.http.HttpHeaders
+import static org.apache.http.HttpHeaders.VIA
 
 class SmokeSpec extends Specification {
 
@@ -20,10 +25,12 @@ class SmokeSpec extends Specification {
 	@Unroll("#type response data")
 	def "various types of response data"() {
 		when:
-		def response = http.get(uri: uri)
+		HttpResponseDecorator response = http.get(uri: uri)
 
 		then:
 		response.status == HTTP_OK
+		response.getFirstHeader(VIA)?.value == "Betamax"
+		response.getFirstHeader(X_BETAMAX)?.value == "PLAY"
 
 		where:
 		type   | uri
