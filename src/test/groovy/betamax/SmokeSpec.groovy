@@ -36,6 +36,7 @@ class SmokeSpec extends Specification {
 		type   | uri
 		"html" | "http://grails.org/"
 		"json" | "http://api.twitter.com/1/statuses/public_timeline.json?count=3&include_entities=true"
+		"json" | "http://search.twitter.com/search.json?q=%23cocktailclub&rpp=5&include_entities=true&with_twitter_user_id=true&result_type=mixed"
 		"xml"  | "http://feeds.feedburner.com/wondermark"
 		"png"  | "http://media.xircles.codehaus.org/_projects/groovy/_logos/small.png"
 	}

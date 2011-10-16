@@ -19,7 +19,7 @@ package betamax.proxy.servlet
 import javax.servlet.http.HttpServletResponse
 import betamax.proxy.*
 
-class ServletResponseImpl extends AbstractMessage implements Response {
+class ServletResponseImpl extends AbstractMessage implements WritableResponse {
 
 	private final HttpServletResponse delegate
 	private int status

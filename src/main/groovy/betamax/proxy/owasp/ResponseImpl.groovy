@@ -83,7 +83,7 @@ class ResponseImpl extends AbstractMessage implements WritableResponse {
 	}
 
 	boolean hasBody() {
-		delegate.content.size() > 0
+		delegate.content?.size() > 0
 	}
 
 	InputStream getBodyAsBinary() {
