@@ -29,7 +29,7 @@ class HttpsSpec extends Specification {
 	@Shared @AutoCleanup("stop") SimpleServer endpoint = new SimpleSecureServer()
 	@AutoCleanup("ejectTape") Recorder recorder = new Recorder(tapeRoot: tapeRoot)
 	@AutoCleanup("stop") ProxyServer proxy = new ProxyServer()
-	HttpClient http
+	DefaultHttpClient http
 
 	def setupSpec() {
 		endpoint.start(EchoHandler)
@@ -69,14 +69,24 @@ class HttpsSpec extends Specification {
 		def connectionManager = new ThreadSafeClientConnManager(params, registry)
 
 		http = new DefaultHttpClient(connectionManager, params)
-
 		http.routePlanner = new ProxySelectorRoutePlanner(http.connectionManager.schemeRegistry, ProxySelector.default)
 
 		recorder.insertTape("ignore hosts spec")
+		recorder.overrideProxySettings()
 	}
 
 	def cleanup() {
 		recorder.restoreOriginalProxySettings()
+	}
+	
+	def "proxy settings are correct"() {
+		given:
+		def uri = endpoint.url.toURI()
+		def proxySelector = ProxySelector.default
+
+		expect:
+		proxySelector.select(uri).first().toString() != "DIRECT"
+		proxySelector.select("https://$uri.host:$uri.port/".toURI()).first().toString() != "DIRECT"
 	}
 
 	def "proxy can intercept HTTPS requests"() {
