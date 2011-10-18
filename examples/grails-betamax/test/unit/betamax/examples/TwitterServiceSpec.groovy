@@ -18,11 +18,10 @@ class TwitterServiceSpec extends UnitSpec {
 	def setupSpec() {
 		def log = Logger.getLogger("betamax")
 		log.addHandler(new ConsoleHandler())
-		log.level = Level.ALL
 	}
 
 	def setup() {
-		def restClient = new RESTClient("http://search.twitter.com/search.json")
+		def restClient = new RESTClient()
 		restClient.client.routePlanner = new ProxySelectorRoutePlanner(restClient.client.connectionManager.schemeRegistry, ProxySelector.default)
 		service.restClient = restClient
 	}
@@ -40,6 +39,16 @@ class TwitterServiceSpec extends UnitSpec {
 		clients["Mobile Web"] == 1
 		clients["Snaptu"] == 1
 		clients["Twitter for BlackBerry\u00AE"] == 1
+	}
+
+	@Betamax(tape = "twitter success")
+	def "only retrieves tweets containing the search term"() {
+		when:
+		def tweets = service.tweets("betamax")
+
+		then:
+		tweets.size() == 10
+		tweets.every { it.text =~ /(?i)betamax/ }
 	}
 
 	@Betamax(tape = "twitter rate limit")
