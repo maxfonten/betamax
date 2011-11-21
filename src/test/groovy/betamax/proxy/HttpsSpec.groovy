@@ -72,11 +72,22 @@ class HttpsSpec extends Specification {
 
 		http.routePlanner = new ProxySelectorRoutePlanner(http.connectionManager.schemeRegistry, ProxySelector.default)
 
-		recorder.insertTape("ignore hosts spec")
+		recorder.insertTape("https spec")
+		recorder.overrideProxySettings()
 	}
 
 	def cleanup() {
 		recorder.restoreOriginalProxySettings()
+	}
+	
+	def "proxy is selected for https URIs"() {
+		given:
+		def uri = endpoint.url.toURI()
+		def httpsUri = "https://$uri.host:$uri.port/".toURI()
+
+		expect:
+		ProxySelector.default.select(uri).first().type() == Proxy.Type.HTTP
+		ProxySelector.default.select(httpsUri).first().type() == Proxy.Type.HTTP
 	}
 
 	def "proxy can intercept HTTPS requests"() {
