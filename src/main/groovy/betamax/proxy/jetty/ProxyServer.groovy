@@ -19,6 +19,9 @@ package betamax.proxy.jetty
 import betamax.Recorder
 import betamax.proxy.RecordAndPlaybackProxyInterceptor
 import static betamax.Recorder.DEFAULT_PROXY_PORT
+import org.eclipse.jetty.server.Connector
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
+import org.eclipse.jetty.server.Server
 
 class ProxyServer extends SimpleServer {
 
@@ -34,5 +37,19 @@ class ProxyServer extends SimpleServer {
 		super.start(handler)
 	}
 
+    @Override
+    protected Server createServer(int port) {
+        def server = super.createServer(port)
+        server.addConnector(createSSLConnector(port + 1))
+        server
+    }
 
+    private Connector createSSLConnector(int port) {
+        def sslConnector = new SslSelectChannelConnector()
+        sslConnector.port = port // TODO: separate property
+        sslConnector.keystore = new File("src/main/resources/keystore").absolutePath // TODO: need to make this a classpath resource
+        sslConnector.password = "password"
+        sslConnector.keyPassword = "password"
+        return sslConnector
+    }
 }

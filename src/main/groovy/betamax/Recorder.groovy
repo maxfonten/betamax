@@ -215,7 +215,7 @@ class Recorder implements MethodRule {
 		SystemPropertyUtils.override("http.proxyHost", proxyHost)
 		SystemPropertyUtils.override("http.proxyPort", proxyPort.toString())
 		SystemPropertyUtils.override("https.proxyHost", proxyHost)
-		SystemPropertyUtils.override("https.proxyPort", proxyPort.toString())
+		SystemPropertyUtils.override("https.proxyPort", (proxyPort + 1).toString())
 		def nonProxyHosts = ignoreHosts as Set
 		if (ignoreLocalhost) {
 			def local = InetAddress.localHost
