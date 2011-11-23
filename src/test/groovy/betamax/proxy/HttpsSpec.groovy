@@ -1,6 +1,6 @@
 package betamax.proxy
 
-import betamax.Recorder
+import betamax.proxy.jetty.SimpleServer
 import betamax.util.server.EchoHandler
 import java.security.KeyStore
 import java.security.cert.X509Certificate
@@ -11,7 +11,8 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
-import betamax.proxy.jetty.*
+import org.junit.Rule
+import betamax.*
 import javax.net.ssl.*
 import static org.apache.http.HttpHeaders.VIA
 import static org.apache.http.HttpVersion.HTTP_1_1
@@ -26,13 +27,19 @@ import spock.lang.*
 class HttpsSpec extends Specification {
 
 	@Shared @AutoCleanup("deleteDir") File tapeRoot = new File(System.properties."java.io.tmpdir", "tapes")
+	@Rule @AutoCleanup("ejectTape") Recorder recorder = new Recorder(tapeRoot: tapeRoot)
 	@Shared @AutoCleanup("stop") SimpleServer endpoint = new SimpleSecureServer()
-	@AutoCleanup("ejectTape") Recorder recorder = new Recorder(tapeRoot: tapeRoot)
-	@AutoCleanup("stop") ProxyServer proxy = new ProxyServer()
+
+	@Shared URI httpUri
+	@Shared URI httpsUri
+
 	HttpClient http
 
 	def setupSpec() {
 		endpoint.start(EchoHandler)
+
+		httpUri = endpoint.url.toURI()
+		httpsUri = "https://$httpUri.host:$httpUri.port/".toURI()
 	}
 
 	def setup() {
@@ -70,32 +77,39 @@ class HttpsSpec extends Specification {
 
 		http = new DefaultHttpClient(connectionManager, params)
 		http.routePlanner = new ProxySelectorRoutePlanner(http.connectionManager.schemeRegistry, ProxySelector.default)
-
-		recorder.insertTape("https spec")
-		recorder.overrideProxySettings()
 	}
 
-	def cleanup() {
-		recorder.restoreOriginalProxySettings()
-	}
-	
-	def "proxy is selected for https URIs"() {
+	@Betamax(tape = "https spec")
+	@Unroll("proxy is selected for #scheme URIs")
+	def "proxy is selected for all URIs"() {
 		given:
-		def uri = endpoint.url.toURI()
-		def httpsUri = "https://$uri.host:$uri.port/".toURI()
-
-		and:
 		def proxySelector = ProxySelector.default
-		
+
 		expect:
-		proxySelector.select(uri).first().type() == Proxy.Type.HTTP
-		proxySelector.select(httpsUri).first().type() == Proxy.Type.HTTP
+		def proxy = proxySelector.select(uri).first()
+		proxy.type() == Proxy.Type.HTTP
+		proxy.address().toString() == "$recorder.proxyHost:${scheme == 'https' ? recorder.httpsProxyPort : recorder.proxyPort}"
+
+		where:
+		uri << [httpUri, httpsUri]
+		scheme = uri.scheme
 	}
 
+	@Betamax(tape = "https spec")
+	def "proxy can intercept HTTP requests"() {
+		when: "an HTTPS request is made"
+		def response = http.execute(new HttpGet(endpoint.url))
+
+		then: "it is intercepted by the proxy"
+		response.getFirstHeader(VIA)?.value == "Betamax"
+	}
+
+	@Betamax(tape = "https spec")
 	def "proxy can intercept HTTPS requests"() {
 		when: "an HTTPS request is made"
 		def uri = endpoint.url.toURI()
-		def response = http.execute(new HttpGet("https://$uri.host:$uri.port/"))
+		def httpsUri = "https://$uri.host:$uri.port/"
+		def response = http.execute(new HttpGet(httpsUri))
 
 		then: "it is intercepted by the proxy"
 		response.getFirstHeader(VIA)?.value == "Betamax"

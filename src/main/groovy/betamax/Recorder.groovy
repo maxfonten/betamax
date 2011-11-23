@@ -92,6 +92,14 @@ class Recorder implements MethodRule {
 	 */
 	boolean ignoreLocalhost = false
 
+    String getProxyHost() {
+        proxy.url.toURI().host
+    }
+
+    int getHttpsProxyPort() {
+        proxyPort + 1
+    }
+
 	private StorableTape tape
 	private ProxyServer proxy = new ProxyServer()
 
@@ -215,7 +223,7 @@ class Recorder implements MethodRule {
 		SystemPropertyUtils.override("http.proxyHost", proxyHost)
 		SystemPropertyUtils.override("http.proxyPort", proxyPort.toString())
 		SystemPropertyUtils.override("https.proxyHost", proxyHost)
-		SystemPropertyUtils.override("https.proxyPort", (proxyPort + 1).toString())
+		SystemPropertyUtils.override("https.proxyPort", httpsProxyPort.toString())
 		def nonProxyHosts = ignoreHosts as Set
 		if (ignoreLocalhost) {
 			def local = InetAddress.localHost

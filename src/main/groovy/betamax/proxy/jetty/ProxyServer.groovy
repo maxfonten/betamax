@@ -17,11 +17,18 @@
 package betamax.proxy.jetty
 
 import betamax.Recorder
-import betamax.proxy.RecordAndPlaybackProxyInterceptor
-import static betamax.Recorder.DEFAULT_PROXY_PORT
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Connector
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlets.ProxyServlet
+import static betamax.Recorder.DEFAULT_PROXY_PORT
+import static org.eclipse.jetty.http.HttpHeaders.VIA
+import javax.servlet.http.HttpServletRequest
+import betamax.proxy.RecordAndPlaybackProxyInterceptor
 
 class ProxyServer extends SimpleServer {
 
@@ -33,6 +40,10 @@ class ProxyServer extends SimpleServer {
 		def handler = new ProxyHandler()
 		handler.interceptor = new RecordAndPlaybackProxyInterceptor(recorder)
 		handler.timeout = recorder.proxyTimeout
+
+//        def handler = new ServletContextHandler()
+//        handler.contextPath = "/"
+//        handler.addServlet(ViaSettingProxyServlet, "/*")
 
 		super.start(handler)
 	}
@@ -52,4 +63,21 @@ class ProxyServer extends SimpleServer {
         sslConnector.keyPassword = "password"
         return sslConnector
     }
+}
+
+class ViaSettingProxyServlet extends ProxyServlet {
+    @Override
+    void service(ServletRequest req, ServletResponse res) {
+        println "service..."
+        ((HttpServletResponse)res).addHeader(VIA, getClass().simpleName)
+        super.service(req, res)
+    }
+
+    @Override
+    void handleConnect(HttpServletRequest request, HttpServletResponse response) {
+        println "handleConnect..."
+        response.addHeader(VIA, getClass().simpleName)
+        super.handleConnect(request, response)
+    }
+
 }
