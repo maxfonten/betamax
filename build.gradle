@@ -50,6 +50,7 @@ signing {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	mavenRepo urls: ["http://m2repo.spockframework.org/snapshots"]
 	mavenRepo urls: ["http://oss.sonatype.org/content/groups/public/"]

@@ -22,13 +22,17 @@ import org.apache.http.params.*
 import static org.apache.http.protocol.HTTP.UTF_8
 import org.eclipse.jetty.server.*
 import spock.lang.*
+import groovy.transform.InheritConstructors
+import org.apache.http.HttpStatus
+import static org.apache.http.HttpStatus.SC_OK
 
 @Issue("https://github.com/robfletcher/betamax/issues/34")
 class HttpsSpec extends Specification {
 
 	@Shared @AutoCleanup("deleteDir") File tapeRoot = new File(System.properties."java.io.tmpdir", "tapes")
 	@Rule @AutoCleanup("ejectTape") Recorder recorder = new Recorder(tapeRoot: tapeRoot)
-	@Shared @AutoCleanup("stop") SimpleServer endpoint = new SimpleSecureServer()
+	@Shared @AutoCleanup("stop") SimpleServer httpsEndpoint = new SimpleSecureServer(5001)
+	@Shared @AutoCleanup("stop") SimpleServer httpEndpoint = new SimpleServer()
 
 	@Shared URI httpUri
 	@Shared URI httpsUri
@@ -36,10 +40,11 @@ class HttpsSpec extends Specification {
 	HttpClient http
 
 	def setupSpec() {
-		endpoint.start(EchoHandler)
+		httpEndpoint.start(EchoHandler)
+		httpsEndpoint.start(EchoHandler)
 
-		httpUri = endpoint.url.toURI()
-		httpsUri = "https://$httpUri.host:$httpUri.port/".toURI()
+		httpUri = httpEndpoint.url.toURI()
+		httpsUri = httpsEndpoint.url.toURI()
 	}
 
 	def setup() {
@@ -98,20 +103,20 @@ class HttpsSpec extends Specification {
 	@Betamax(tape = "https spec")
 	def "proxy can intercept HTTP requests"() {
 		when: "an HTTPS request is made"
-		def response = http.execute(new HttpGet(endpoint.url))
+		def response = http.execute(new HttpGet(httpEndpoint.url))
 
 		then: "it is intercepted by the proxy"
+		response.statusLine.statusCode == SC_OK
 		response.getFirstHeader(VIA)?.value == "Betamax"
 	}
 
 	@Betamax(tape = "https spec")
 	def "proxy can intercept HTTPS requests"() {
 		when: "an HTTPS request is made"
-		def uri = endpoint.url.toURI()
-		def httpsUri = "https://$uri.host:$uri.port/"
-		def response = http.execute(new HttpGet(httpsUri))
+		def response = http.execute(new HttpGet(httpsEndpoint.url))
 
 		then: "it is intercepted by the proxy"
+		response.statusLine.statusCode == SC_OK
 		response.getFirstHeader(VIA)?.value == "Betamax"
 	}
 
@@ -147,7 +152,13 @@ class DummySSLSocketFactory extends SSLSocketFactory {
 	}
 }
 
+@InheritConstructors
 class SimpleSecureServer extends SimpleServer {
+
+	@Override
+	String getUrl() {
+		"https://$host:$port/"
+	}
 
 	@Override
 	protected Server createServer(int port) {

@@ -26,8 +26,8 @@ class SimpleServer extends AbstractLifeCycleListener {
 
 	static final int DEFAULT_PORT = 5000
 	
-	private final String host
-	private int port
+	protected final String host
+	protected int port
 	private Server server
 	private CountDownLatch startedLatch
 	private CountDownLatch stoppedLatch

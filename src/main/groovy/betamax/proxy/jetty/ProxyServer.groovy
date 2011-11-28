@@ -37,13 +37,13 @@ class ProxyServer extends SimpleServer {
 	}
 
 	void start(Recorder recorder) {
-		def handler = new ProxyHandler()
-		handler.interceptor = new RecordAndPlaybackProxyInterceptor(recorder)
-		handler.timeout = recorder.proxyTimeout
+//		def handler = new ProxyHandler()
+//		handler.interceptor = new RecordAndPlaybackProxyInterceptor(recorder)
+//		handler.timeout = recorder.proxyTimeout
 
-//        def handler = new ServletContextHandler()
-//        handler.contextPath = "/"
-//        handler.addServlet(ViaSettingProxyServlet, "/*")
+        def handler = new ServletContextHandler()
+        handler.contextPath = "/"
+        handler.addServlet(ViaSettingProxyServlet, "/*")
 
 		super.start(handler)
 	}
