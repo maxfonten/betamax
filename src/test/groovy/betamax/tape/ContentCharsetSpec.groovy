@@ -66,8 +66,7 @@ interactions:
 		def response = new BasicResponse(HTTP_OK, "OK")
 
 		when:
-		tape.seek(new BasicRequest("GET", "http://robfletcher.github.com/betamax"))
-		tape.play(response)
+		tape.play(new BasicRequest("GET", "http://robfletcher.github.com/betamax"), response)
 
 		then:
 		def expected = encoder ? encoder.encode("\u00a3", charset) : "\u00a3".getBytes(charset)

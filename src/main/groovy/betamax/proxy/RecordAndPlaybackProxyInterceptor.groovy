@@ -40,10 +40,10 @@ class RecordAndPlaybackProxyInterceptor implements VetoingProxyInterceptor {
 			log.severe "no tape inserted..."
 			response.setError(HTTP_FORBIDDEN, "No tape")
 			true
-		} else if (tape.seek(request) && tape.isReadable()) {
+		} else if (tape.matchesRequest(request) && tape.isReadable()) {
 			log.info "playing back from tape '$tape.name'..."
 			response.addHeader(X_BETAMAX, "PLAY")
-			tape.play(response)
+			tape.play(request, response)
 			true
 		} else if (!tape.isWritable()) {
 			response.setError(HTTP_FORBIDDEN, "Tape is read-only")

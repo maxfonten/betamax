@@ -24,13 +24,12 @@ class TapeSpec extends Specification {
 	}
 
 	def cleanup() {
-		tape.reset()
 		tape.mode = READ_WRITE
 	}
 
 	def "reading from an empty tape throws an exception"() {
 		when: "an empty tape is played"
-		tape.play(new BasicResponse())
+		tape.play(getRequest, new BasicResponse())
 
 		then: "an exception is thrown"
 		thrown IllegalStateException
@@ -58,7 +57,7 @@ class TapeSpec extends Specification {
 	
 	def "can overwrite a recorded interaction"() {
 		given: "the tape is ready to play"
-		tape.seek(getRequest)
+		tape.matchesRequest(getRequest)
 
 		when: "a recording is made"
 		tape.record(getRequest, plainTextResponse)
@@ -75,23 +74,20 @@ class TapeSpec extends Specification {
 		def request = new BasicRequest("GET", "http://qwantz.com/")
 
 		expect:
-		!tape.seek(request)
+		!tape.matchesRequest(request)
 	}
 
 	def "can seek for a previously recorded interaction"() {
 		expect:
-		tape.seek(getRequest)
+		tape.matchesRequest(getRequest)
 	}
 
 	def "can read a stored interaction"() {
 		given: "an http response to play back to"
 		def response = new BasicResponse()
 
-		and: "the tape is ready to play"
-		tape.seek(getRequest)
-
 		when: "the tape is played"
-		tape.play(response)
+		tape.play(getRequest, response)
 
 		then: "the recorded response data is copied onto the response"
 		response.status == plainTextResponse.status
@@ -113,30 +109,12 @@ class TapeSpec extends Specification {
 		interaction.request.body == request.bodyAsText.text
 	}
 
-	def "can reset the tape position"() {
-		given: "the tape is ready to read"
-		tape.seek(getRequest)
-
-		when: "the tape position is reset"
-		tape.reset()
-
-		and: "the tape is played"
-		tape.play(new BasicResponse())
-
-		then: "an exception is thrown"
-		def e = thrown(IllegalStateException)
-		e.message == "the tape is not ready to play"
-	}
-
 	def "a write-only tape cannot be read from"() {
 		given: "the tape is put into write-only mode"
 		tape.mode = WRITE_ONLY
 
-		and: "the tape is ready to read"
-		tape.seek(getRequest)
-
 		when: "the tape is played"
-		tape.play(new BasicResponse())
+		tape.play(getRequest, new BasicResponse())
 
 		then: "an exception is thrown"
 		def e = thrown(IllegalStateException)

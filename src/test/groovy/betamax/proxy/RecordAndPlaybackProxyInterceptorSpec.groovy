@@ -17,7 +17,7 @@ class RecordAndPlaybackProxyInterceptorSpec extends Specification {
 		def tape = Mock(Tape)
 		tape.isReadable() >> true
 		tape.isWritable() >> true
-		tape.seek(_) >> false
+		tape.matchesRequest(_) >> false
 		recorder.getTape() >> tape
 
 		when:
@@ -34,7 +34,7 @@ class RecordAndPlaybackProxyInterceptorSpec extends Specification {
 		given:
 		def tape = Mock(Tape)
 		tape.isReadable() >> true
-		tape.seek(_) >> true
+		tape.matchesRequest(_) >> true
 		recorder.getTape() >> tape
 
 		when:
@@ -44,7 +44,7 @@ class RecordAndPlaybackProxyInterceptorSpec extends Specification {
 		veto
 
 		and:
-		1 * tape.play(response)
+		1 * tape.play(request, response)
 	}
 
 	def "vetos a request and sets failing response code if no tape is inserted"() {
@@ -75,14 +75,14 @@ class RecordAndPlaybackProxyInterceptorSpec extends Specification {
 		!veto
 
 		and: "the tape is positioned on an existing matching recording so it gets overwritten in WRITE_ONLY mode"
-		1 * tape.seek(_) >> true
+		1 * tape.matchesRequest(_) >> true
 	}
 
 	def "vetos a request and sets failing response code if the tape is not writable"() {
 		given:
 		def tape = Mock(Tape)
 		tape.isReadable() >> true
-		tape.seek(request) >> false
+		tape.matchesRequest(request) >> false
 		tape.isWritable() >> false
 		recorder.getTape() >> tape
 

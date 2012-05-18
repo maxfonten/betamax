@@ -16,6 +16,8 @@
 
 package betamax.tape
 
+import groovy.transform.WithReadLock;
+import groovy.transform.WithWriteLock;
 import betamax.*
 import static betamax.MatchRule.*
 import static betamax.TapeMode.READ_WRITE
@@ -32,10 +34,10 @@ class MemoryTape implements Tape {
 	List<RecordedInteraction> interactions = []
 	private TapeMode mode = READ_WRITE
 	private Comparator<Request>[] matchRules = [method, uri]
-	private int position = -1
 
-	void setMode(TapeMode mode) {
-		this.mode = mode
+	@Override
+	public void setMode(TapeMode mode) {
+		this.mode = mode;		
 	}
 
 	void setMatchRules(Comparator<Request>[] matchRules) {
@@ -54,19 +56,15 @@ class MemoryTape implements Tape {
 		interactions.size()
 	}
 
-	boolean seek(Request request) {
-		def requestMatcher = new RequestMatcher(request, matchRules)
-		position = interactions.findIndexOf {
-			requestMatcher.matches(it.request)
-		}
-		position >= 0
+	@WithReadLock
+	boolean matchesRequest(Request request) {
+		findInteraction(request) >= 0
 	}
-
-	void reset() {
-		position = -1
-	}
-
-	void play(Response response) {
+ 
+	@WithReadLock
+	void play(Request request, Response response) {
+		def position = findInteraction(request)
+		
 		if (!mode.readable) {
 			throw new IllegalStateException("the tape is not readable")
 		} else if (position < 0) {
@@ -90,7 +88,10 @@ class MemoryTape implements Tape {
 		}
 	}
 
+	@WithWriteLock
 	void record(Request request, Response response) {
+		def position = findInteraction(request)
+		
 		if (mode.writable) {
 			def interaction = new RecordedInteraction(request: recordRequest(request), response: recordResponse(response), recorded: new Date())
 			if (position >= 0) {
@@ -108,6 +109,13 @@ class MemoryTape implements Tape {
 		"Tape[$name]"
 	}
 
+	private int findInteraction(Request request) {
+		def requestMatcher = new RequestMatcher(request, matchRules)
+		interactions.findIndexOf {
+			requestMatcher.matches(it.request)
+		}
+	}
+	
 	private static RecordedRequest recordRequest(Request request) {
 		def clone = new RecordedRequest()
 		clone.method = request.method

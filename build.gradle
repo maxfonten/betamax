@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'idea'
 
-group = 'com.github.robfletcher'
+group = 'com.github.maxfonten'
 version = '1.1-SNAPSHOT'
 
 // custom tasks for creating source/javadoc jars
@@ -27,10 +27,6 @@ artifacts {
     archives jar, sourcesJar, javadocJar, groovydocJar
 }
 
-signing {
-    sign configurations.archives
-}
-
 repositories {
     mavenCentral()
     mavenRepo url: 'http://m2repo.spockframework.org/snapshots'
@@ -38,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.7.8'
+    groovy 'org.codehaus.groovy:groovy-all:1.8.6'
     compile 'junit:junit:4.8.2'
     compile 'org.apache.httpcomponents:httpclient:4.1.2'
     compile 'org.eclipse.jetty:jetty-server:7.3.1.v20110307'
@@ -49,7 +45,7 @@ dependencies {
     }
     testRuntime 'cglib:cglib-nodep:2.2.2'
     testCompile 'commons-httpclient:commons-httpclient:3.1'
-    testCompile('org.spockframework:spock-core:0.6-groovy-1.7-SNAPSHOT') {
+    testCompile('org.spockframework:spock-core:0.6-groovy-1.8') {
         exclude module: 'groovy-all'
     }
 }

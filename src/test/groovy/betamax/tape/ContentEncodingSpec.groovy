@@ -62,8 +62,7 @@ interactions:
 		def response = new BasicResponse(200, "OK")
 
 		when:
-		tape.seek(new BasicRequest("GET", "http://robfletcher.github.com/betamax"))
-		tape.play(response)
+		tape.play(new BasicRequest("GET", "http://robfletcher.github.com/betamax"), response)
 
 		then:
 		response.getHeader(CONTENT_ENCODING) == encoding
