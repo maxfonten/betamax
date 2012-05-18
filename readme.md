@@ -1,3 +1,7 @@
+# Fork notes
+Added some read/write locking around the MemoryTape implementation.
+This makes it a bit more robust when handling concurrent HTTP requests.
+
 # Betamax
 
 A Groovy testing tool inspired by Ruby's [VCR][vcr]. Betamax can record and play back HTTP interactions made by your app
